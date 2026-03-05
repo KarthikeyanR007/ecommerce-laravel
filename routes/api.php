@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\OrderController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
@@ -10,6 +13,31 @@ Route::post('register', [AuthController::class, 'register']);
 Route::middleware('auth:api')->group(function () {
     //Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
-    Route::get('categories/home', [CategoryController::class, 'getCategoryForHome']);
+
     Route::get('getProduct/{categoryId}', [CategoryController::class, 'getProductByCategory']);
+
+    Route::post('/user/profile/{userId}', [ProfileController::class, 'addUserDetails']);
+    Route::get('/user/getdata/{userId}', [ProfileController::class, 'getUserDetails']);
+    Route::post('/user/change_active_address/{userId}', [ProfileController::class, 'changeActiveAddress']);
+    Route::get('/user/active_address/{userId}', [ProfileController::class, 'getActiveAddress']);
+
+    Route::post('/user/favourites',[ProductController::class, 'addFavourite']);
+    Route::post('/user/favourites/{user_id}',[ProductController::class, 'getFavourite']);
+});
+
+Route::controller(ProductController::class)->middleware('auth:api')->group(function(){
+    Route::get('/products/similar/{product_id}','getSimilarProduct');
+    Route::get('getSingleProduct/{product_id}','getSingleProduct');
+    Route::get('getProductTitle/{product_id}','getProductTitle');
+});
+
+Route::controller(CategoryController::class)->middleware('auth:api')->group(function(){
+    Route::get('categories/home', 'getCategoryForHome');
+    Route::get('categories/allitem', 'getCategoryForAllItem');
+});
+
+Route::controller(OrderController::class)->middleware('auth:api')->group(function(){
+    Route::post('place_order','storeOrder');
+    Route::get('getOrders','getOrder');
+    Route::post('reorder','reOrder');
 });

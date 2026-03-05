@@ -2,48 +2,52 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Services\ProductService;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(private ProductService $productService)
     {
-        //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function addFavourite(Request $req)
     {
-        //
+        Log::info($req->all());
+        $productId = (int) $req->input('product_id');
+        $isFavourite = $req->input('is_favourite');
+        Log::info('is called');
+        $this->productService->toggleFavourite($productId,$isFavourite);
+
+        return response()->json([
+            'message' => 'favourite added successfully',
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Product $product)
+    public function getFavourite($user_id)
     {
-        //
+        $favourites = $this->productService->getFavourites((int) $user_id);
+
+        return response()->json($favourites);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Product $product)
+    public function getSimilarProduct($product_id)
     {
-        //
+        $similar = $this->productService->getSimilarProducts((int) $product_id);
+
+        return response()->json($similar);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Product $product)
+    public function getSingleProduct($product_id)
     {
-        //
+        $productDetails = $this->productService->getSingleProduct((int) $product_id);
+        return $productDetails;
+    }
+
+    public function getProductTitle($product_id)
+    {
+        $productTitle = $this->productService->getProductTitle((int) $product_id);
+        return $productTitle;
     }
 }

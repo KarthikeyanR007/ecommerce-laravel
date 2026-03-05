@@ -25,26 +25,31 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        try {
+            Log::info(['request' => $request->all()]);
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+            ]);
 
-        Log::info(['request' => $request->all()]);
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-        ]);
+            $token = auth('api')->login($user);
 
-        $token = auth('api')->login($user);
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user
-        ]);
+            return response()->json([
+                'token' => $token,
+                'user' => $user
+            ]);
+        } catch (\Throwable $th) {
+            Log::error($th);
+            return response()->json(['error' => 'Registration failed'], 500);
+        }
     }
 
     
     public function logout()
     {
         auth('api')->logout();
+        Log::info('User logged out');
         return response()->json(['message' => 'Logged out']);
     }
 }

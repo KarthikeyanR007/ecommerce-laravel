@@ -28,14 +28,20 @@ class UserObserver
      */
     public function updated(User $user): void
     {
-        RhCustomIndividualLog::create([
-            'cil_user_id' => auth('api')->id(),
-            'cil_modal_path' => Post::class,
-            'cil_modal_name' => 'posts',
-            'cil_action' => 'update',
-            'cil_from_value' => $post->getOriginal(),
-            'cil_to_value' => $post->getChanges(),
-            'cil_created_by' => auth('api')->id(),
+        $changes = $user->getChanges();
+
+        if (empty($changes)) {
+            return;
+        }
+
+        Rh_customindividuallog::create([
+            'cil_user_id' => $user->id,
+            'cil_modal_path' => User::class,
+            'cil_modal_name' => 'User',
+            'cil_action' => 'updated',
+            'cil_from_value' => $user->getOriginal(),
+            'cil_to_value' => $changes,
+            'cil_created_by' => auth()->id() ?? $user->id,
         ]);
     }
 

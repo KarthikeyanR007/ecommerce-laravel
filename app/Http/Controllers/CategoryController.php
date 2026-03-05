@@ -6,20 +6,15 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\Log;
+use App\Services\CategoryService;
 
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(private CategoryService $categoryService)
     {
-        //
+
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function getProductByCategory(Request $request)
     {
         $categoryId = $request->route('categoryId');
@@ -30,21 +25,16 @@ class CategoryController extends Controller
         return response()->json($products, 200);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function getCategoryForHome(Category $category)
+    public function getCategoryForHome()
     {
-        $category = Category::where('category_status', true)->latest()->take(6)->get();
-        return response()->json($category);
+        $home_categories = $this->categoryService->getCategoriesForHome();
+        return response()->json($home_categories);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Category $category)
+    public function getCategoryForAllItem()
     {
-        //
+        $allItem_categories = $this->categoryService->getCategoriesForAllItem();
+        return response()->json($allItem_categories);
     }
 
     /**

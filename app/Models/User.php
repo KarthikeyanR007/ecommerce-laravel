@@ -22,6 +22,12 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'image',
+        'phone',
+        'home_address',
+        'office_address',
+        'active_address',
+        'status',
     ];
 
     /**
@@ -55,5 +61,17 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function favourites()
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'favourites',
+            'user_id',        // foreign key on favourites table
+            'product_id',     // foreign key on favourites table
+            'id',             // local key on users table
+            'product_id'      // local key on products table
+        );
     }
 }
