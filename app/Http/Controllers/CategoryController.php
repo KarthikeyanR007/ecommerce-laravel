@@ -37,11 +37,63 @@ class CategoryController extends Controller
         return response()->json($allItem_categories);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Category $category)
+    public function addCategory(Request $req)
     {
-        //
+        $category_name = $req->input('name');
+        $category_description = $req->input('description');
+        $category_image = $req->file('image');
+        Log::info('test');
+        $this->categoryService->addCategories($category_name, $category_description, $category_image);
+
+        return response()->json([
+          'message' => 'Category created successfully'
+        ]);
+    }
+
+    public function getAllCategory()
+    {
+        $all_categories = $this->categoryService->getAllCategories();
+        return response()->json([
+            'data' => $all_categories,
+            'message' => 'Get All Category successfully'
+        ],200);
+    }
+
+    public function deleteCategory($category_id)
+    {
+        $category = $this->categoryService->deleteCategory($category_id);
+        return response()->json([
+            'data' => $category,
+            'message' => 'Category Deleted successfully'
+        ],200);
+    }
+
+    public function getCategory($category_id)
+    {
+        $category = $this->categoryService->getCategory($category_id);
+        
+        return response()->json([
+            'data' => [
+                'data'         => $categories->items(),
+                'total'        => $categories->total(),
+                'per_page'     => $categories->perPage(),
+                'current_page' => $categories->currentPage(),
+                'last_page'    => $categories->lastPage(),
+            ],
+            'message' => 'Get All Category successfully',
+        ]);
+    }
+
+    public function updateCategory(Request $req, $category_id)
+    {
+        $category_id   = $category_id;
+        $category_name = $req->input('name');
+        $category_description = $req->input('description');
+        $category_image = $req->file('image');
+        $category = $this->categoryService->updateCategory($category_id, $category_name, $category_description, $category_image);
+        return response()->json([
+            'data' => $category,
+            'message' =>'Category Deleted successfully'
+        ],200);
     }
 }

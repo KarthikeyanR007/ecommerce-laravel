@@ -26,4 +26,9 @@ class OrderService
         $orderId = ltrim($orderId, '#');
         return $this->orders->placeReorder($orderId);
     }
+
+    public function getAllOrder()
+    {
+        return $this->orders->getAllOrder();
+    }
 }

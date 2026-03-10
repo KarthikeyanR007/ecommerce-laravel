@@ -111,4 +111,9 @@ class OrderRepository implements OrderInterface
     {
         Order::where('user_order_id', $orderId);
     }
+
+    public function getAllOrder(int $perPage = 10)
+    {
+        return Order::with('items.product', 'user')->where('status','pending')->orderBy('created_at', 'desc')->paginate($perPage);
+    }
 }

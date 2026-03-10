@@ -35,19 +35,44 @@ class OrderController extends Controller
         return $this->orderService->placeReorder($orderId);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function getAllOrder()
     {
-        //
-    }
+        $orders = $this->orderService->getAllOrder();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $data = collect($orders->items())->map(function ($order) {
+            return [
+                'order_id'               => $order->order_id,
+                'user_order_id'          => $order->user_order_id,
+                'user_id'                => $order->user_id,
+                'user_name'              => $order->user?->name,
+                'user_email'             => $order->user?->email,
+                'total_amount'           => $order->total_amount,
+                'delivery_date'          => $order->delivery_date,
+                'order_delivery_address' => $order->order_delivery_address,
+                'delivery_boy_id'        => $order->delivery_boy_id,
+                'payment_status'         => $order->payment_status,
+                'order_status'           => $order->status,
+                'created_at'             => $order->created_at,
+                'updated_at'             => $order->updated_at,
+                'items'                  => $order->items->map(fn($item) => [
+                            'order_item_id' => $item->order_item_id,
+                            'order_id'      => $item->order_id,
+                            'product_id'    => $item->product_id,
+                            'product_name'  => $item->product?->product_name,
+                            'quantity'      => $item->quantity,
+                            'price'         => $item->price,
+                            'subtotal'      => $item->subtotal,
+                ]),
+            ];
+        });
+
+        return response()->json([
+            'data'         => $data,
+            'total'        => $orders->total(),
+            'per_page'     => $orders->perPage(),
+            'current_page' => $orders->currentPage(),
+            'last_page'    => $orders->lastPage(),
+            'message'      => 'Orders fetched successfully',
+        ]);
     }
 }

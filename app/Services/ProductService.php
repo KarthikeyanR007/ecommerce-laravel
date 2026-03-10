@@ -42,4 +42,50 @@ class ProductService
     {
         return $this->products->getProductTitle($productId);
     }
+
+    public function getAllProducts(int $perPage = 10)
+    {
+        return $this->products->getAllProducts($perPage);
+    }
+
+    public function addProduct($product_name, $product_description, $product_price, $discount_price, $category_id, $product_image)
+    {
+        $imagePath = null;
+        if ($product_image) {
+            $user_id = auth()->id();
+            $timestamp = time();
+            $extension = $product_image->getClientOriginalExtension();
+            $fileName = $user_id . '_' . $timestamp . '.' . $extension;
+            $product_image->storeAs('products', $fileName, 'public');
+            $imagePath = 'storage/products/' . $fileName;
+        }
+
+        return $this->products->addProduct($product_name, $product_description, $product_price, $discount_price, $category_id,$imagePath);
+    }
+
+    public function deleteProduct($product_id)
+    {
+        return $this->products->deleteProduct($product_id);
+    }
+
+    public function getProduct($product_id)
+    {
+        return $this->products->getProduct($product_id);
+    }
+
+    public function updateProduct($product_name,$product_description,$product_price,$discount_price,$category_id,$product_stock,$product_image,$product_id)
+    {
+        $imagePath = null;
+        if ($product_image) {
+            $user_id = auth()->id();
+            $timestamp = time();
+            $extension = $product_image->getClientOriginalExtension();
+            $fileName = $user_id . '_' . $timestamp . '.' . $extension;
+            $product_image->storeAs('products', $fileName, 'public');
+            $imagePath = 'storage/products/' . $fileName;
+            $product_image = $imagePath;
+        }
+
+        return $this->products->updateProduct($product_name,$product_description,$product_price,$discount_price,$category_id,$product_stock,$product_image,$product_id);
+    }
 }

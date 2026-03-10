@@ -70,4 +70,55 @@ class ProductRepository implements ProductInterface
         $productTitle = Product::where('product_status', 1)->where('product_id',$productId)->value('product_name');
         return $productTitle;
     }
+
+    public function getAllProducts(int $perPage = 10)
+    {
+        $products = Product::where('product_status',1)->orderBy('created_at', 'desc')->paginate($perPage);
+        return $products;
+    }
+
+    public function addProduct($product_name, $product_description, $product_price, $discount_price,$category_id, $product_image)
+    {
+       $product = Product::create([
+            'product_name' => $product_name,
+            'product_description' => $product_description,
+            'product_price' => $product_price,
+            'product_discount' => $discount_price,
+            'category_id' => $category_id,
+        ]);
+
+        return $product;
+    }
+    
+    public function deleteProduct($product_id)
+    {
+        $product = Product::where('product_id', $product_id)->update(['product_status' => 0]);
+        return $product;
+    }
+
+    public function getProduct($product_id)
+    {
+        return Product::where('product_id', $product_id)->where('product_status',1)->first();
+    }
+
+    public function updateProduct($product_name, $product_description, $product_price, $discount_price, $category_id, $product_stock, $product_image, $product_id)
+    {
+        $product = Product::find($product_id);
+
+        if (!$product) {
+            return null;
+        }
+
+        $product->update([
+            'product_name'        => $product_name,
+            'product_description' => $product_description,
+            'product_price'       => $product_price,
+            'product_discount'    => $discount_price,
+            'product_stock'       => $product_stock,
+            'product_image'       => $product_image,
+            'category_id'         => $category_id,
+        ]);
+
+        return $product;
+    }
 }
