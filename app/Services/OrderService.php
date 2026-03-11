@@ -31,4 +31,9 @@ class OrderService
     {
         return $this->orders->getAllOrder();
     }
+
+    public function assignDeliveryBoy($deliveryBoyId, $orderId)
+    {
+        return $this->orders->assignDeliveryBoy($deliveryBoyId, $orderId);
+    }
 }

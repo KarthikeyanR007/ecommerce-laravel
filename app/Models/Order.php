@@ -32,7 +32,8 @@ class Order extends Model
       'delivery_date',
       'status',
       'payment_status',
-      'order_delivery_address'
+      'order_delivery_address',
+      'delivery_boy_id'
     ];
 
     public function user()

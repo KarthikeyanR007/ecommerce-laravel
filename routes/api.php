@@ -52,6 +52,7 @@ Route::controller(OrderController::class)->middleware('auth:api')->group(functio
     Route::get('getOrders','getOrder');
     Route::post('reorder','reOrder');
     Route::get('orders/getall','getAllOrder');
+    Route::post('orders/assign-delivery-boy/{orderId}','assignDeliveryBoy');
 });
 
 Route::controller(DeliveryBoyController::class)->middleware('auth:api')->group(function(){

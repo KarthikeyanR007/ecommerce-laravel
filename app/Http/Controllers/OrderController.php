@@ -75,4 +75,15 @@ class OrderController extends Controller
             'message'      => 'Orders fetched successfully',
         ]);
     }
+
+    public function assignDeliveryBoy(Request $req, $orderId)
+    {
+        $deliveryBoyId = $req->input('delivery_boy_id');
+        $order = $this->orderService->assignDeliveryBoy($deliveryBoyId, $orderId);
+
+        return response()->json([
+            'data'    => $order,
+            'message' => 'Delivery boy assigned successfully',
+        ]);
+    }
 }

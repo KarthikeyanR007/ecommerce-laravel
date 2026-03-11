@@ -17,15 +17,12 @@ class OrderRepository implements OrderInterface
     public function storeOrders($products, $address_id, $payment_method, $user_id)
     {
         $address_id = User::where('id', $user_id)->value('active_address');
-        Log::info([' $address_id '=> $address_id ]);
         $column = match ($address_id) {
                         '1' => 'home_address',
                         '2' => 'office_address',
                         default => null,
                     };
-        Log::info([' $column '=> $column ]);
         $address = $column  ? User::where('id', $user_id)->value($column) : null;
-        Log::info(['$address ',$address]);
         $order = Order::create([
                     'user_id' => $user_id,
                     'status'  => 'pending',
@@ -115,5 +112,15 @@ class OrderRepository implements OrderInterface
     public function getAllOrder(int $perPage = 10)
     {
         return Order::with('items.product', 'user')->where('status','pending')->orderBy('created_at', 'desc')->paginate($perPage);
+    }
+
+    public function assignDeliveryBoy($deliveryBoyId, $orderId)
+    {
+        Log::info(['deliveryBoyId' => $deliveryBoyId, 'orderId' => $orderId]);
+        $order = Order::where('user_order_id', $orderId)->firstOrFail();
+        $order->update([
+            'delivery_boy_id' => $deliveryBoyId
+        ]);
+        return $order->fresh();
     }
 }

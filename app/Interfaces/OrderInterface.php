@@ -10,4 +10,5 @@ interface OrderInterface
     public function getOrders($user_id);
     public function placeReorder($orderId);
     public function getAllOrder();
+    public function assignDeliveryBoy($deliveryBoyId, $orderId);
 }
