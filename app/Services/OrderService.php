@@ -11,9 +11,9 @@ class OrderService
     {
     }
 
-    public function storeOrders($products, $address_id, $payment_method, $user_id)
+    public function storeOrders($products, $address_id, $payment_method, $user_id, $orderImg)
     {
-        return $this->orders->storeOrders($products, $address_id, $payment_method, $user_id);
+        return $this->orders->storeOrders($products, $address_id, $payment_method, $user_id, $orderImg);
     }
 
     public function getOrders($user_id)

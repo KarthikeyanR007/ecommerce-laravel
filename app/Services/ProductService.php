@@ -59,7 +59,7 @@ class ProductService
             $product_image->storeAs('products', $fileName, 'public');
             $imagePath = 'storage/products/' . $fileName;
         }
-
+             $imagePath ;
         return $this->products->addProduct($product_name, $product_description, $product_price, $discount_price, $category_id,$imagePath);
     }
 

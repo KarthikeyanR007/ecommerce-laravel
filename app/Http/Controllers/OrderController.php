@@ -18,8 +18,9 @@ class OrderController extends Controller
         $address_id     = $req->input('address_id');
         $payment_method = $req->input('payment_method');
         $user_id        = auth()->id();
+        $orderImg       = $req->input('orderImage');
 
-        $orderData      = $this->orderService->storeOrders($products, $address_id, $payment_method, $user_id);
+        $orderData      = $this->orderService->storeOrders($products, $address_id, $payment_method, $user_id,$orderImg);
         return $orderData;
     }
 

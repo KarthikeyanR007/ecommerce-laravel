@@ -40,11 +40,11 @@ Route::controller(ProductController::class)->middleware('auth:api')->group(funct
 Route::controller(CategoryController::class)->middleware('auth:api')->group(function(){
     Route::get('categories/home', 'getCategoryForHome');
     Route::get('categories/allitem', 'getCategoryForAllItem');
-    Route::get('categories/getall','getAllCategory');
-    Route::post('categories/add','addCategory');
-    Route::post('categories/delete/{category_id}','deleteCategory');
-    Route::get('categories/get/{category_id}','getCategory');
-    Route::post('categories/update/{category_id}','updateCategory');
+    Route::get('categories/getall', 'getAllCategory');
+    Route::post('categories/add', 'addCategory');
+    Route::post('categories/delete/{category_id}', 'deleteCategory');
+    Route::get('categories/get/{category_id}', 'getCategory');
+    Route::post('categories/update/{category_id}', 'updateCategory');
 });
 
 Route::controller(OrderController::class)->middleware('auth:api')->group(function(){
@@ -57,4 +57,8 @@ Route::controller(OrderController::class)->middleware('auth:api')->group(functio
 
 Route::controller(DeliveryBoyController::class)->middleware('auth:api')->group(function(){
     Route::get('deliveryboy/getall','getAllDeliveryBoys');
+});
+
+Route::controller(ProfileController::class)->middleware('auth:api')->group(function(){
+    Route::get('users/getall','getAllUsers');
 });

@@ -4,11 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\User;
+use App\Services\ProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
+    public function __construct(private ProfileService $profileService)
+    {
+    }
+
     public function addUserDetails(Request $request, $userId)
     {
         $validated = $request->validate([
@@ -67,6 +72,21 @@ class ProfileController extends Controller
         return response()->json([
             'message' => 'User data get successfully',
             'data' => $user->fresh()
+        ]);
+    }
+
+    public function getAllUsers()
+    {
+        $users = $this->profileService->getAllUsers();
+        return response()->json([
+            'data' => [
+                'data'         => $users->items(),
+                'total'        => $users->total(),
+                'per_page'     => $users->perPage(),
+                'current_page' => $users->currentPage(),
+                'last_page'    => $users->lastPage(),
+            ],
+            'message' => 'Get All Users successfully',
         ]);
     }
 

@@ -14,7 +14,7 @@ use Carbon\Carbon;
 
 class OrderRepository implements OrderInterface
 {
-    public function storeOrders($products, $address_id, $payment_method, $user_id)
+    public function storeOrders($products, $address_id, $payment_method, $user_id, $orderImg)
     {
         $address_id = User::where('id', $user_id)->value('active_address');
         $column = match ($address_id) {
@@ -22,15 +22,20 @@ class OrderRepository implements OrderInterface
                         '2' => 'office_address',
                         default => null,
                     };
+        Log::info(['$orderImg '=>$orderImg]);
         $address = $column  ? User::where('id', $user_id)->value($column) : null;
+        $orderImg = $orderImg;
         $order = Order::create([
                     'user_id' => $user_id,
                     'status'  => 'pending',
                     'payment_status' => 'unpaid',
                     'total_amount'   => 0,
                     'delivery_date' => now()->addDays(5),
-                    'order_delivery_address' => $address
+                    'order_delivery_address' => $address,
+                    'image_path' => $orderImg
                 ]);
+
+        Log::info([' $order  '=> $order ]);
 
         $total = 0;
         foreach($products as $item){
@@ -71,6 +76,7 @@ class OrderRepository implements OrderInterface
                         'orders.total_amount',
                         'orders.delivery_date',
                         'orders.delivery_boy_id',
+                        'orders.image_path',
                         'delivery_boys.phone as delivery_boy_phone',
                         DB::raw('COUNT(order_items.order_id) as items_count')
                     )
@@ -81,6 +87,7 @@ class OrderRepository implements OrderInterface
                         'orders.status',
                         'orders.total_amount',
                         'orders.delivery_date',
+                        'orders.image_path',
                         'orders.delivery_boy_id',
                         'delivery_boys.phone'
                     )
@@ -97,9 +104,10 @@ class OrderRepository implements OrderInterface
                 'dateTime' => Carbon::parse($order->delivery_date)
                                 ->format('d M Y \a\t h:i A'),
                 'tab'      => $order->status === 'delivered' ? 'past' : 'upcoming',
-                'image'    => asset('images/placeholder.png'),
+                'image'    => $order->image_path,
                 'deliveryBoyId' => $order->delivery_boy_id,
                 'deliveryBoyNumber' => $order->delivery_boy_phone,
+
             ];
         });
     }
@@ -111,7 +119,7 @@ class OrderRepository implements OrderInterface
 
     public function getAllOrder(int $perPage = 10)
     {
-        return Order::with('items.product', 'user')->where('status','pending')->orderBy('created_at', 'desc')->paginate($perPage);
+        return Order::with('items.product', 'user')->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
     public function assignDeliveryBoy($deliveryBoyId, $orderId)

@@ -54,10 +54,10 @@ class CategoryService
     {
         $imagePath = null;
         if ($category_image) {
-            $category_id = auth()->id();
+            $user_id = auth()->id();
             $timestamp = time();
             $extension = $category_image->getClientOriginalExtension();
-            $fileName = $category_id . '_' . $timestamp . '.' . $extension;
+            $fileName = $user_id . '_' . $timestamp . '.' . $extension;
             $category_image->storeAs('categories', $fileName, 'public');
             $imagePath = 'storage/categories/' . $fileName;
         }

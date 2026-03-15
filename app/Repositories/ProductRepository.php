@@ -80,11 +80,12 @@ class ProductRepository implements ProductInterface
     public function addProduct($product_name, $product_description, $product_price, $discount_price,$category_id, $product_image)
     {
        $product = Product::create([
-            'product_name' => $product_name,
+            'product_name'        => $product_name,
             'product_description' => $product_description,
-            'product_price' => $product_price,
-            'product_discount' => $discount_price,
-            'category_id' => $category_id,
+            'product_price'       => $product_price,
+            'product_discount'    => $discount_price,
+            'category_id'         => $category_id,
+            'product_image'       => $product_image
         ]);
 
         return $product;

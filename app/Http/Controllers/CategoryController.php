@@ -39,9 +39,9 @@ class CategoryController extends Controller
 
     public function addCategory(Request $req)
     {
-        $category_name = $req->input('name');
-        $category_description = $req->input('description');
-        $category_image = $req->file('image');
+        $category_name = $req->input('category_name');
+        $category_description = $req->input('category_description');
+        $category_image = $req->file('category_image');
         Log::info('test');
         $this->categoryService->addCategories($category_name, $category_description, $category_image);
 
@@ -70,26 +70,20 @@ class CategoryController extends Controller
 
     public function getCategory($category_id)
     {
-        $category = $this->categoryService->getCategory($category_id);
+        $categories = $this->categoryService->getCategory($category_id);
         
         return response()->json([
-            'data' => [
-                'data'         => $categories->items(),
-                'total'        => $categories->total(),
-                'per_page'     => $categories->perPage(),
-                'current_page' => $categories->currentPage(),
-                'last_page'    => $categories->lastPage(),
-            ],
+            'data' => $categories ,
             'message' => 'Get All Category successfully',
-        ]);
+        ], 200);
     }
 
     public function updateCategory(Request $req, $category_id)
     {
         $category_id   = $category_id;
-        $category_name = $req->input('name');
-        $category_description = $req->input('description');
-        $category_image = $req->file('image');
+        $category_name = $req->input('category_name');
+        $category_description = $req->input('category_description');
+        $category_image = $req->file('category_image');
         $category = $this->categoryService->updateCategory($category_id, $category_name, $category_description, $category_image);
         return response()->json([
             'data' => $category,
