@@ -10,11 +10,13 @@ use App\Interfaces\CategoryInterface;
 use App\Interfaces\OrderInterface;
 use App\Interfaces\DeliveryBoyInterface;
 use App\Interfaces\ProfileInterface;
+use App\Interfaces\EventInterface;
 use App\Repositories\ProductRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\DeliveryBoyRepository;
 use App\Repositories\ProfileRepository;
+use App\Repositories\EventRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(OrderInterface::class, OrderRepository::class);
         $this->app->bind(DeliveryBoyInterface::class, DeliveryBoyRepository::class);
         $this->app->bind(ProfileInterface::class, ProfileRepository::class);
+        $this->app->bind(EventInterface::class, EventRepository::class);
     }
 
     /**

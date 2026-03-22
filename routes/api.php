@@ -7,21 +7,18 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DeliveryBoyController;
+use App\Http\Controllers\EventController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
 
 Route::middleware('auth:api')->group(function () {
-    //Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
-
     Route::get('getProduct/{categoryId}', [CategoryController::class, 'getProductByCategory']);
-
     Route::post('/user/profile/{userId}', [ProfileController::class, 'addUserDetails']);
     Route::get('/user/getdata/{userId}', [ProfileController::class, 'getUserDetails']);
     Route::post('/user/change_active_address/{userId}', [ProfileController::class, 'changeActiveAddress']);
     Route::get('/user/active_address/{userId}', [ProfileController::class, 'getActiveAddress']);
-
     Route::post('/user/favourites',[ProductController::class, 'addFavourite']);
     Route::post('/user/favourites/{user_id}',[ProductController::class, 'getFavourite']);
 });
@@ -61,4 +58,17 @@ Route::controller(DeliveryBoyController::class)->middleware('auth:api')->group(f
 
 Route::controller(ProfileController::class)->middleware('auth:api')->group(function(){
     Route::get('users/getall','getAllUsers');
+});
+
+Route::controller(EventController::class)->group(function(){
+    Route::get('events/getall','getAllEvent');
+    Route::post('event/addForm', 'addFormData');
+});
+
+
+
+Route::controller(EventController::class)->middleware('auth:api')->group(function(){
+    Route::post('events/add','addEvent');
+    Route::post('events/update/{eventid}','updateEvent');
+    Route::get('student/getallStudent','getallStudent');
 });

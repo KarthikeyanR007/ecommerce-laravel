@@ -35,8 +35,6 @@ class OrderRepository implements OrderInterface
                     'image_path' => $orderImg
                 ]);
 
-        Log::info([' $order  '=> $order ]);
-
         $total = 0;
         foreach($products as $item){
             $product  = Product::find($item['id']);
