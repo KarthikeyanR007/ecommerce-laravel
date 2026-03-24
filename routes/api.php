@@ -10,6 +10,7 @@ use App\Http\Controllers\DeliveryBoyController;
 use App\Http\Controllers\EventController;
 
 Route::post('login', [AuthController::class, 'login']);
+Route::post('adminLogin', [AuthController::class, 'adminLogin']);
 Route::post('register', [AuthController::class, 'register']);
 
 Route::middleware('auth:api')->group(function () {
@@ -47,9 +48,11 @@ Route::controller(CategoryController::class)->middleware('auth:api')->group(func
 Route::controller(OrderController::class)->middleware('auth:api')->group(function(){
     Route::post('place_order','storeOrder');
     Route::get('getOrders','getOrder');
-    Route::post('reorder','reOrder');
     Route::get('orders/getall','getAllOrder');
     Route::post('orders/assign-delivery-boy/{orderId}','assignDeliveryBoy');
+    Route::post('order/cancel/{orderId}','orderCancel');
+    Route::post('order/get_order/{orderId}','getReorderData');
+    Route::post('order/place_reorder/{orderId}','placeReorder');
 });
 
 Route::controller(DeliveryBoyController::class)->middleware('auth:api')->group(function(){

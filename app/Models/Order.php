@@ -10,9 +10,24 @@ class Order extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDING   = 1;
+    public const STATUS_DELIVERED = 2;
+    public const STATUS_CANCELLED = 3;
+
+    public const STATUS_LABELS = [
+        self::STATUS_PENDING   => 'pending',
+        self::STATUS_DELIVERED => 'delivered',
+        self::STATUS_CANCELLED => 'cancelled',
+    ];
+
     protected $primaryKey = 'order_id';
     public $incrementing = true;
     protected $keyType = 'int'; 
+
+    protected $casts = [
+        'status'         => 'integer',
+        'payment_status' => 'string',
+    ];
 
     protected static function boot()
     {
@@ -36,6 +51,11 @@ class Order extends Model
       'delivery_boy_id',
       'image_path'
     ];
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? 'unknown';
+    }
 
     public function user()
     {

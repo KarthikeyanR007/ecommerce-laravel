@@ -22,12 +22,11 @@ class OrderRepository implements OrderInterface
                         '2' => 'office_address',
                         default => null,
                     };
-        Log::info(['$orderImg '=>$orderImg]);
         $address = $column  ? User::where('id', $user_id)->value($column) : null;
         $orderImg = $orderImg;
         $order = Order::create([
                     'user_id' => $user_id,
-                    'status'  => 'pending',
+                    'status'  => Order::STATUS_PENDING,
                     'payment_status' => 'unpaid',
                     'total_amount'   => 0,
                     'delivery_date' => now()->addDays(5),
@@ -56,7 +55,7 @@ class OrderRepository implements OrderInterface
             'user_order_id' => $order->user_order_id,
             'delivery_date' => \Carbon\Carbon::parse($order->delivery_date)->format('Y-m-d'),
             'total_amount'  => $order->total_amount,
-            'status'        => $order->status,
+            'status'        => $order->status_label,
         ];
 
     }
@@ -97,11 +96,11 @@ class OrderRepository implements OrderInterface
                 'id'       => $order->user_order_id,
                 'address'  => $order->order_delivery_address,
                 'items'    => $order->items_count,
-                'status'   => $order->status,
+                'status'   => $order->status_label,
                 'price'    => (float) $order->total_amount,
                 'dateTime' => Carbon::parse($order->delivery_date)
                                 ->format('d M Y \a\t h:i A'),
-                'tab'      => $order->status === 'delivered' ? 'past' : 'upcoming',
+                'tab'      => $order->status === Order::STATUS_DELIVERED ? 'past' : 'upcoming',
                 'image'    => $order->image_path,
                 'deliveryBoyId' => $order->delivery_boy_id,
                 'deliveryBoyNumber' => $order->delivery_boy_phone,
@@ -112,7 +111,59 @@ class OrderRepository implements OrderInterface
 
     public function placeReorder($orderId)
     {
-        Order::where('user_order_id', $orderId);
+       $order = Order::where('user_order_id', $orderId)->firstOrFail();
+       $order_primaryId = $order->order_id;
+       $OrderItems = OrderItem::where('order_id', $order_primaryId)->get()->toArray();
+       foreach($OrderItems as $item){
+            $product = Product::find($item['product_id']);
+            if (!$product || !$product->product_status || $product->product_stock <= 0) {
+                    $message = !$product?'Product removed':(!$product->product_status?'Product unavailable':'Out of stock');
+                    return response()->json(['message' => $message]);
+            }
+
+       }
+        $user_id = auth()->id();
+        $address_id = User::where('id', $user_id)->value('active_address');
+        $column = match ($address_id) {
+                        '1' => 'home_address',
+                        '2' => 'office_address',
+                        default => null,
+                    };
+        $address = $column  ? User::where('id', $user_id)->value($column) : null;
+        $order_img = $order->image_path;
+        $newOrder = Order::create([
+                    'user_id' => $user_id,
+                    'status'  => Order::STATUS_PENDING,
+                    'payment_status' => 'unpaid',
+                    'total_amount'   => 0,
+                    'delivery_date' => now()->addDays(5),
+                    'order_delivery_address' => $address,
+                    'image_path' => $order_img
+                ]);
+
+        $total = 0;
+        foreach($OrderItems as $item){
+            $product  = Product::find($item['product_id']);
+            $subtotal = $product->product_price * $item['quantity'];
+            OrderItem::create([
+                'order_id'      => $newOrder->order_id,
+                'product_id'    => $item['product_id'],
+                'quantity'      => $item['quantity'],
+                'price'         => $product->product_price,
+                'subtotal'      => $subtotal
+            ]);
+
+            $total += $subtotal;
+        }
+
+        $newOrder->update(['total_amount' => $total]);
+
+        return [
+            'user_order_id' => $newOrder->user_order_id,
+            'delivery_date' => \Carbon\Carbon::parse($newOrder->delivery_date)->format('Y-m-d'),
+            'total_amount'  => $newOrder->total_amount,
+            'status'        => $newOrder->status_label,
+        ];
     }
 
     public function getAllOrder(int $perPage = 10)
@@ -128,5 +179,19 @@ class OrderRepository implements OrderInterface
             'delivery_boy_id' => $deliveryBoyId
         ]);
         return $order->fresh();
+    }
+
+    public function orderCancel($orderId, $ord_cancel_reason)
+    {
+        return Order::where('user_order_id', $orderId)
+                        ->update([
+                            'status' => Order::STATUS_CANCELLED,
+                            'order_cancel_reason' => $ord_cancel_reason
+                            ]);
+    }
+
+    public function getReorderData($orderId)
+    {
+        return Order::where('user_order_id', $orderId)->firstOrFail();
     }
 }

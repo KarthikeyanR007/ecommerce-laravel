@@ -36,4 +36,14 @@ class OrderService
     {
         return $this->orders->assignDeliveryBoy($deliveryBoyId, $orderId);
     }
+
+    public function orderCancel($orderId, $ord_cancel_reason)
+    {
+        return $this->orders->orderCancel($orderId, $ord_cancel_reason);
+    }
+
+    public function getReorderData($orderId)
+    {
+        return $this->orders->getReorderData($orderId);
+    }
 }

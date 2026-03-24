@@ -109,7 +109,7 @@ class ProductController extends Controller
         $discount_price      = $req->input('product_discount');
         $category_id         = $req->input('category_id');
         $product_stock       = $req->input('product_stock');
-        $product_image       = $req->file('product_image');
+        $product_image       = $req->file('product_image') ?? $req->input('product_image');
         $product = $this->productService->updateProduct($product_name,$product_description,$product_price,$discount_price,$category_id,$product_stock,$product_image,$product_id);
         
         return response()->json([

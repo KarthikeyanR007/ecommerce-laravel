@@ -83,11 +83,11 @@ class CategoryController extends Controller
         $category_id   = $category_id;
         $category_name = $req->input('category_name');
         $category_description = $req->input('category_description');
-        $category_image = $req->file('category_image');
+        $category_image = $req->file('category_image') ?? $req->input('category_image');
         $category = $this->categoryService->updateCategory($category_id, $category_name, $category_description, $category_image);
         return response()->json([
             'data' => $category,
-            'message' =>'Category Deleted successfully'
+            'message' => 'Category Updated successfully'
         ],200);
     }
 }

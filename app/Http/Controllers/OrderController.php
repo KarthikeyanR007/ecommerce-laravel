@@ -30,9 +30,8 @@ class OrderController extends Controller
         return $this->orderService->getOrders($user_id);
     }
 
-    public function reOrder(Request $req)
+    public function placeReorder($orderId)
     {
-        $orderId = $req->input('order_id');
         return $this->orderService->placeReorder($orderId);
     }
 
@@ -52,7 +51,7 @@ class OrderController extends Controller
                 'order_delivery_address' => $order->order_delivery_address,
                 'delivery_boy_id'        => $order->delivery_boy_id,
                 'payment_status'         => $order->payment_status,
-                'order_status'           => $order->status,
+                'order_status'           => $order->status_label,
                 'created_at'             => $order->created_at,
                 'updated_at'             => $order->updated_at,
                 'items'                  => $order->items->map(fn($item) => [
@@ -86,5 +85,24 @@ class OrderController extends Controller
             'data'    => $order,
             'message' => 'Delivery boy assigned successfully',
         ]);
+    }
+
+    public function orderCancel(Request $req,$orderId)
+    {
+        $ord_cancel_reason = $req->input('reason');
+        $order = $this->orderService->orderCancel($orderId, $ord_cancel_reason);
+        return response()->json([
+            'data' => $order,
+            'message' => 'Order Cancelled successfully'
+        ]);
+    }
+
+    public function getReorderData($orderId)
+    {
+        $order = $this->orderService->getReorderData($orderId);
+        return response()->json([
+            'data' => $order,
+            'message' => 'Reorder Data Get successfully'
+        ], 200);
     }
 }

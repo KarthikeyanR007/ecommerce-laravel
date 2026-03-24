@@ -73,19 +73,19 @@ class ProductService
         return $this->products->getProduct($product_id);
     }
 
-    public function updateProduct($product_name,$product_description,$product_price,$discount_price,$category_id,$product_stock,$product_image,$product_id)
+    public function updateProduct($product_name, $product_description, $product_price, $discount_price, $category_id, $product_stock, $product_image, $product_id)
     {
-        $imagePath = null;
         if ($product_image) {
-            $user_id = auth()->id();
-            $timestamp = time();
-            $extension = $product_image->getClientOriginalExtension();
-            $fileName = $user_id . '_' . $timestamp . '.' . $extension;
-            $product_image->storeAs('products', $fileName, 'public');
-            $imagePath = 'storage/products/' . $fileName;
-            $product_image = $imagePath;
+            if ($product_image instanceof \Illuminate\Http\UploadedFile) {
+                $user_id = auth()->id();
+                $timestamp = time();
+                $extension = $product_image->getClientOriginalExtension();
+                $fileName = $user_id . '_' . $timestamp . '.' . $extension;
+                $product_image->storeAs('products', $fileName, 'public');
+                $product_image = 'storage/products/' . $fileName;
+            }
         }
 
-        return $this->products->updateProduct($product_name,$product_description,$product_price,$discount_price,$category_id,$product_stock,$product_image,$product_id);
+        return $this->products->updateProduct($product_name, $product_description, $product_price, $discount_price, $category_id, $product_stock, $product_image, $product_id);
     }
 }

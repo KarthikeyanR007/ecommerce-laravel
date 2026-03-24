@@ -53,14 +53,20 @@ class CategoryService
     public function updateCategory($category_id, $category_name, $category_description, $category_image)
     {
         $imagePath = null;
+
         if ($category_image) {
-            $user_id = auth()->id();
-            $timestamp = time();
-            $extension = $category_image->getClientOriginalExtension();
-            $fileName = $user_id . '_' . $timestamp . '.' . $extension;
-            $category_image->storeAs('categories', $fileName, 'public');
-            $imagePath = 'storage/categories/' . $fileName;
+            if ($category_image instanceof \Illuminate\Http\UploadedFile) {
+                $user_id = auth()->id();
+                $timestamp = time();
+                $extension = $category_image->getClientOriginalExtension();
+                $fileName = $user_id . '_' . $timestamp . '.' . $extension;
+                $category_image->storeAs('categories', $fileName, 'public');
+                $imagePath = 'storage/categories/' . $fileName;
+            } else {
+                $imagePath = $category_image;
+            }
         }
+
         return $this->categories->updateCategory($category_id, $category_name, $category_description, $imagePath);
     }
     

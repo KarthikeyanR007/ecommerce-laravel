@@ -9,6 +9,24 @@ use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
+    public function adminLogin(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        if (!$token = auth('api')->attempt($credentials)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        $user = auth('api')->user();
+        if ($user->role != 1) {
+            auth('api')->logout();
+            return response()->json(['error' => 'Access Denied. Admins only.'], 403);
+        }
+        return response()->json([
+            'token' => $token,
+            'user' => $user
+        ]);
+    }
+
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
