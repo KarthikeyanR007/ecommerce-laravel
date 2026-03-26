@@ -13,4 +13,5 @@ interface OrderInterface
     public function assignDeliveryBoy($deliveryBoyId, $orderId);
     public function orderCancel($orderId, $ord_cancel_reason);
     public function getReorderData($orderId);
+    public function getOrderItemList($orderId);
 }

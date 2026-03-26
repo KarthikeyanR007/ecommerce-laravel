@@ -53,6 +53,7 @@ Route::controller(OrderController::class)->middleware('auth:api')->group(functio
     Route::post('order/cancel/{orderId}','orderCancel');
     Route::post('order/get_order/{orderId}','getReorderData');
     Route::post('order/place_reorder/{orderId}','placeReorder');
+    Route::get('order/get_order_item_list/{orderId}','getOrderItemList');
 });
 
 Route::controller(DeliveryBoyController::class)->middleware('auth:api')->group(function(){

@@ -46,4 +46,9 @@ class OrderService
     {
         return $this->orders->getReorderData($orderId);
     }
+
+    public function getOrderItemList($orderId)
+    {
+        return $this->orders->getOrderItemList($orderId);
+    }
 }

@@ -105,4 +105,13 @@ class OrderController extends Controller
             'message' => 'Reorder Data Get successfully'
         ], 200);
     }
+
+    public function getOrderItemList($orderId)
+    {
+        $orderItemList = $this->orderService->getOrderItemList($orderId);
+        return response()->json([
+            'data' => $orderItemList,
+            'message' => 'Data Get successfully'
+        ], 200);
+    }
 }

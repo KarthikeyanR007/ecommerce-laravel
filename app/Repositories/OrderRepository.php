@@ -194,4 +194,27 @@ class OrderRepository implements OrderInterface
     {
         return Order::where('user_order_id', $orderId)->firstOrFail();
     }
+
+    public function getOrderItemList($orderId)
+    {
+        $Order = Order::where('user_order_id', $orderId)
+            ->select('order_id')
+            ->firstOrFail();
+
+        $orderItems = OrderItem::where('order_id', $Order->order_id)->get();
+        $productQtyMap = [];
+        foreach ($orderItems as $item) {
+            $productQtyMap[$item->product_id] = $item->quantity;
+        }
+        $productIds = array_keys($productQtyMap);
+        $products = Product::whereIn('product_id', $productIds)->get();
+        $result = [];
+        foreach ($products as $product) {
+            $productArr = $product->toArray();
+            $productArr['quantity'] = $productQtyMap[$product->product_id] ?? 0;
+            $result[] = $productArr;
+        }
+
+        return $result;
+    }
 }
