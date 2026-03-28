@@ -67,6 +67,7 @@ Route::controller(ProfileController::class)->middleware('auth:api')->group(funct
 Route::controller(EventController::class)->group(function(){
     Route::get('events/getall','getAllEvent');
     Route::post('event/addForm', 'addFormData');
+    Route::post('event/delete/{event_id}','deleteEvent');
 });
 
 

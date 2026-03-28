@@ -67,4 +67,9 @@ class EventRepository implements EventInterface
     {
         return studentData::orderBy('created_at', 'desc')->paginate($perPage);
     }
+
+    public function deleteEvent($eventId)
+    {
+        return Event::where('id',$eventId)->update(['event_status' => 0]);
+    }
 }

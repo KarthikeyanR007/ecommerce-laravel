@@ -80,4 +80,9 @@ class EventService
     {
        return $this->events->getallStudent();
     }
+
+    public function deleteEvent($eventId)
+    {
+        return $this->events->deleteEvent($eventId);
+    }
 }

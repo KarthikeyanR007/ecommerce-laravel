@@ -61,4 +61,13 @@ class EventController extends Controller
             'message' => 'Get All student successfully',
         ]);
     }
+
+    public function deleteEvent($eventId)
+    {
+        $event = $this->eventService->deleteEvent($eventId);
+        return response()->json([
+            'data' => $event,
+            'message' => 'Get All Events successfully',
+        ]);
+    }
 }
