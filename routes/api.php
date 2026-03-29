@@ -13,6 +13,13 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('adminLogin', [AuthController::class, 'adminLogin']);
 Route::post('register', [AuthController::class, 'register']);
 
+Route::controller(AuthController::class)->prefix('auth')->group(function () {
+    Route::post('send-otp',       'sendOtp');
+    Route::post('verify-otp',     'verifyOtp');
+    Route::post('check-username', 'checkUsername');
+});
+
+
 Route::middleware('auth:api')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('getProduct/{categoryId}', [CategoryController::class, 'getProductByCategory']);

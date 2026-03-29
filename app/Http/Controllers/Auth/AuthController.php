@@ -6,9 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    private int $maxAttempts = 5;
+    private int $otpTtl = 300;
+
     public function adminLogin(Request $request)
     {
         $credentials = $request->only('email', 'password');
@@ -45,10 +50,15 @@ class AuthController extends Controller
     {
         try {
             Log::info(['request' => $request->all()]);
+            $name = $request->name;
+            $email = $name . '@gmail.com';
+            Log::info("Generated email: {$email}");
+            $pasword = $request->password;
+            
             $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => bcrypt($request->password),
+                'name' => $name,
+                'email' => $email,
+                'password' => bcrypt($pasword),
             ]);
 
             $token = auth('api')->login($user);
@@ -69,5 +79,159 @@ class AuthController extends Controller
         auth('api')->logout();
         Log::info('User logged out');
         return response()->json(['message' => 'Logged out']);
+    }
+
+    public function sendOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string|min:10|max:15',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Invalid phone number',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        $phone = $request->input('phone');
+
+        // Rate limit: max 3 OTP sends per phone per 10 minutes
+        $rateLimitKey = "otp_rate:{$phone}";
+        $sendCount    = Cache::get($rateLimitKey, 0);
+
+        if ($sendCount >= 3) {
+            return response()->json([
+                'message' => 'Too many OTP requests. Please wait 10 minutes.',
+            ], 429);
+        }
+
+        // Generate 6-digit OTP
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Store OTP in cache (key → phone, value → otp, ttl → 5 min)
+        // NEVER return OTP in response
+        $cacheKey = "otp:{$phone}";
+        Cache::put($cacheKey, [
+            'otp'      => $otp,
+            'attempts' => 0,
+            'verified' => false,
+        ], $this->otpTtl);
+
+        // Increment rate limit counter (expires in 10 min)
+        Cache::put($rateLimitKey, $sendCount + 1, 600);
+
+        // ── Send SMS ────────────────────────────────────────────────────────────
+        // Uncomment whichever SMS service you use:
+
+        // Option 1: Twilio
+        // $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
+        // $twilio->messages->create("+91{$phone}", [
+        //     'from' => config('services.twilio.from'),
+        //     'body' => "Your OTP is {$otp}. Valid for 5 minutes. Do not share.",
+        // ]);
+
+        // Option 2: MSG91 / Fast2SMS / any Indian SMS provider
+        // Http::post('https://api.msg91.com/api/v5/otp', [
+        //     'authkey'  => config('services.msg91.key'),
+        //     'mobile'   => $phone,
+        //     'otp'      => $otp,
+        //     'template_id' => config('services.msg91.template_id'),
+        // ]);
+        Log::info("OTP : {$otp}");
+        Log::info("OTP sent to phone: {$phone}");
+        // ── DO NOT log the OTP in production ────────────────────────────────────
+
+        return response()->json([
+            'message'     => 'OTP sent successfully',
+            'expires_in'  => $this->otpTtl, // seconds — tell frontend timer
+        ], 200);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string|min:10|max:15',
+            'otp'   => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Invalid input',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        $phone    = $request->input('phone');
+        $inputOtp = $request->input('otp');
+        $cacheKey = "otp:{$phone}";
+
+        // Check if OTP exists (not expired)
+        $data = Cache::get($cacheKey);
+
+        if (!$data) {
+            return response()->json([
+                'message' => 'OTP expired or not requested. Please request a new OTP.',
+            ], 400);
+        }
+
+        // Check max attempts (brute-force protection)
+        if ($data['attempts'] >= $this->maxAttempts) {
+            Cache::forget($cacheKey);
+            return response()->json([
+                'message' => 'Too many incorrect attempts. Please request a new OTP.',
+            ], 429);
+        }
+
+        // Wrong OTP — increment attempts
+        if ($data['otp'] !== $inputOtp) {
+            $data['attempts']++;
+            Cache::put($cacheKey, $data, $this->otpTtl);
+
+            $remaining = $this->maxAttempts - $data['attempts'];
+            return response()->json([
+                'message'           => 'Invalid OTP.',
+                'attempts_remaining' => $remaining,
+            ], 400);
+        }
+
+        // ✅ OTP correct — mark verified, delete OTP from cache
+        Cache::forget($cacheKey);
+
+        // Store a short-lived "phone verified" token so register API
+        // can confirm this phone was actually verified
+        $verifiedKey = "phone_verified:{$phone}";
+        Cache::put($verifiedKey, true, 600); // valid 10 min to complete registration
+
+        Log::info("OTP verified successfully for phone: {$phone}");
+
+        return response()->json([
+            'message'  => 'OTP verified successfully',
+            'verified' => true,
+        ], 200);
+    }
+
+    public function checkUsername(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|min:3|max:50',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Invalid username',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        $name = $request->input('name');
+        $email = $name . '@gmail.com';
+
+        $exists = User::where('email', $email)->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message'   => !$exists ? 'Username is available' : 'Username is already taken',
+        ], 200);
     }
 }
