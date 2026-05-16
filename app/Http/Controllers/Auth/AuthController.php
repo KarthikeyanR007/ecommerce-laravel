@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OtpMail;
 
 class AuthController extends Controller
 {
@@ -86,20 +88,20 @@ class AuthController extends Controller
     public function sendOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'phone' => 'required|string|min:10|max:15',
+            'email' => 'required|string|email|max:255',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Invalid phone number',
+                'message' => 'Invalid email address',
                 'errors'  => $validator->errors(),
             ], 422);
         }
 
-        $phone = $request->input('phone');
+        $email = $request->input('email');
 
-        // Rate limit: max 3 OTP sends per phone per 10 minutes
-        $rateLimitKey = "otp_rate:{$phone}";
+        // Rate limit: max 3 OTP sends per email per 10 minutes
+        $rateLimitKey = "otp_rate:{$email}";
         $sendCount    = Cache::get($rateLimitKey, 0);
 
         if ($sendCount >= 3) {
@@ -111,9 +113,8 @@ class AuthController extends Controller
         // Generate 6-digit OTP
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        // Store OTP in cache (key → phone, value → otp, ttl → 5 min)
-        // NEVER return OTP in response
-        $cacheKey = "otp:{$phone}";
+        // Store OTP in cache
+        $cacheKey = "otp:{$email}";
         Cache::put($cacheKey, [
             'otp'      => $otp,
             'attempts' => 0,
@@ -123,37 +124,30 @@ class AuthController extends Controller
         // Increment rate limit counter (expires in 10 min)
         Cache::put($rateLimitKey, $sendCount + 1, 600);
 
-        // ── Send SMS ────────────────────────────────────────────────────────────
-        // Uncomment whichever SMS service you use:
+        // Send OTP email
+        try {
+            Log::info("Sending OTP to email: {$otp} for {$email}");
+            Mail::to($email)->send(new OtpMail($otp, $this->otpTtl));
+        } catch (\Exception $e) {
+            Log::error("Failed to send OTP email to {$email}: " . $e->getMessage());
 
-        // Option 1: Twilio
-        // $twilio = new \Twilio\Rest\Client(config('services.twilio.sid'), config('services.twilio.token'));
-        // $twilio->messages->create("+91{$phone}", [
-        //     'from' => config('services.twilio.from'),
-        //     'body' => "Your OTP is {$otp}. Valid for 5 minutes. Do not share.",
-        // ]);
+            return response()->json([
+                'message' => 'Failed to send OTP email. Please try again.',
+            ], 500);
+        }
 
-        // Option 2: MSG91 / Fast2SMS / any Indian SMS provider
-        // Http::post('https://api.msg91.com/api/v5/otp', [
-        //     'authkey'  => config('services.msg91.key'),
-        //     'mobile'   => $phone,
-        //     'otp'      => $otp,
-        //     'template_id' => config('services.msg91.template_id'),
-        // ]);
-        Log::info("OTP : {$otp}");
-        Log::info("OTP sent to phone: {$phone}");
-        // ── DO NOT log the OTP in production ────────────────────────────────────
+        Log::info("OTP sent to email: {$email}");
 
         return response()->json([
-            'message'     => 'OTP sent successfully',
-            'expires_in'  => $this->otpTtl, // seconds — tell frontend timer
+            'message'    => 'OTP sent successfully',
+            'expires_in' => $this->otpTtl,
         ], 200);
     }
 
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'phone' => 'required|string|min:10|max:15',
+            'email' => 'required|string|email|max:255',
             'otp'   => 'required|string|size:6',
         ]);
 
@@ -164,9 +158,9 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $phone    = $request->input('phone');
+        $email    = $request->input('email');
         $inputOtp = $request->input('otp');
-        $cacheKey = "otp:{$phone}";
+        $cacheKey = "otp:{$email}";
 
         // Check if OTP exists (not expired)
         $data = Cache::get($cacheKey);
@@ -200,12 +194,12 @@ class AuthController extends Controller
         // ✅ OTP correct — mark verified, delete OTP from cache
         Cache::forget($cacheKey);
 
-        // Store a short-lived "phone verified" token so register API
-        // can confirm this phone was actually verified
-        $verifiedKey = "phone_verified:{$phone}";
+        // Store a short-lived "email verified" token so register API
+        // can confirm this email was actually verified
+        $verifiedKey = "email_verified:{$email}";
         Cache::put($verifiedKey, true, 600); // valid 10 min to complete registration
 
-        Log::info("OTP verified successfully for phone: {$phone}");
+        Log::info("OTP verified successfully for email: {$email}");
 
         return response()->json([
             'message'  => 'OTP verified successfully',
