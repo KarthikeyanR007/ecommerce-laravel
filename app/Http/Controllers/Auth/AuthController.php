@@ -53,10 +53,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         try {
-            Log::info(['request' => $request->all()]);
             $name = $request->name;
-            $email = $name . '@gmail.com';
-            Log::info("Generated email: {$email}");
+            $email = $request->email;
             $pasword = $request->password;
             
             $user = User::create([
@@ -99,6 +97,11 @@ class AuthController extends Controller
         }
 
         $email = $request->input('email');
+        if (User::where('email', $email)->exists()) {
+            return response()->json([
+                'message' => 'User with this email is already registered.',
+            ], 409);
+        }
 
         // Rate limit: max 3 OTP sends per email per 10 minutes
         $rateLimitKey = "otp_rate:{$email}";
