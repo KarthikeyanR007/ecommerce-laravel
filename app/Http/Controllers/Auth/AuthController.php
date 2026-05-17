@@ -36,8 +36,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $username = $request->input('email');
-        $email = $username . '@gmail.com';
+        $email = $request->input('email');
         $password = $request->input('password');
         $credentials = compact('email', 'password');
         if (!$token = auth('api')->attempt($credentials)) {
